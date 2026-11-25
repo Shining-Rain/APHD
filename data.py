@@ -5,6 +5,13 @@ import scipy.sparse as sp
 import numpy as np
 
 
+def _inverse_degree_diagonal(degrees, exponent):
+    degrees = np.asarray(degrees).ravel()
+    scale = np.zeros_like(degrees, dtype=np.result_type(degrees, 1.0))
+    np.power(degrees, exponent, out=scale, where=degrees > 0)
+    return sp.diags(scale)
+
+
 class DataLoader:
     """Load interaction splits and social edges into sparse matrices."""
 
@@ -81,10 +88,6 @@ class DataLoader:
         except KeyError as exc:
             raise ValueError(f'Unknown raw user id: {raw_user_id}') from exc
 
-    def _matrix_cache_path(self, stem):
-        suffix = '_compact_users'
-        return os.path.join(self.path, f'{stem}{suffix}.npz')
-
     def _read_rows(self, name):
         with open(os.path.join(self.path, name), 'r') as f:
             for line in f:
@@ -111,49 +114,18 @@ class DataLoader:
         return followers_list, followees_list
 
     def sparse_adjacency_matrix(self):
-        """Load or construct the degree-normalized user-item interaction matrix."""
-        # Selection and refit use different interactions in the same directory.
-        stem = 'pre_R_mat_train_val' if self.include_validation else 'pre_R_mat_train'
-        npz_path = self._matrix_cache_path(stem)
-        try:
-            norm_R = sp.load_npz(npz_path)
-            print("\t Adjacency matrix loading completed.")
-        except Exception:
-            R = self.train_data.todok()
-            row_sum = np.array(R.sum(axis=1))
-            d_inv = np.power(row_sum, -0.5).flatten()
-            d_inv[np.isinf(d_inv)] = 0.
-            d_mat = sp.diags(d_inv)
-            norm_R = d_mat.dot(R)
-            col_sum = np.array(R.sum(axis=0))
-            d_inv = np.power(col_sum, -0.5).flatten()
-            d_inv[np.isinf(d_inv)] = 0.
-            d_mat = sp.diags(d_inv)
-            norm_R = norm_R.dot(d_mat)
-            norm_R = norm_R.tocsr()
-            sp.save_npz(npz_path, norm_R)
-            print("\t Adjacency matrix constructed.")
-        self.bipartite_graph = norm_R
+        """Normalize the interactions loaded for this training stage."""
+        matrix = self.train_data
+        user_scale = _inverse_degree_diagonal(matrix.sum(axis=1), -0.5)
+        item_scale = _inverse_degree_diagonal(matrix.sum(axis=0), -0.5)
+        self.bipartite_graph = (user_scale @ matrix @ item_scale).tocsr()
         return self.bipartite_graph
-
 
     def sparse_mean_social_matrix(self):
         """Scale each destination column by the inverse out-degree of that user."""
-        npz_path = self._matrix_cache_path('pre_S_mat')
-        try:
-            norm_R = sp.load_npz(npz_path)
-            print("\t Adjacency matrix loading completed.")
-        except Exception:
-            R = self.social_data.todok()
-            row_sum = np.array(R.sum(axis=1))
-            d_inv = np.power(row_sum, -1.0).flatten()
-            d_inv[np.isinf(d_inv)] = 0.
-            d_mat = sp.diags(d_inv)
-            norm_R = R.dot(d_mat)
-            norm_R = norm_R.tocsr()
-            sp.save_npz(npz_path, norm_R)
-            print("\t Adjacency matrix constructed.")
-        self.social_graph = norm_R
+        matrix = self.social_data
+        destination_scale = _inverse_degree_diagonal(matrix.sum(axis=1), -1.0)
+        self.social_graph = (matrix @ destination_scale).tocsr()
         return self.social_graph
 
     def get_user_pos_items(self, users):
