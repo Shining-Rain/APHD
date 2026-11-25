@@ -26,7 +26,15 @@ python -m pip install numpy scipy
 
 ## Datasets
 
-Download Douban-Book, Douban-Movie, and Yelp [Here](https://api.github.com/repositories/783168078/zipball/2cdb4e0dfcdd129e5c42ac8eb2ec42322b3ae4ff). Extract the archive and run the following command from the APHD repository root before training. Replace `../datasets/Data` with the path to the extracted `Data` directory.
+| Dataset | Reference |
+| --- | --- |
+| Douban-Book | Yu et al., [Socially-Aware Self-Supervised Tri-Training for Recommendation](https://doi.org/10.1145/3447548.3467340) (KDD 2021) |
+| Douban-Movie | Yu et al., [Self-Supervised Multi-Channel Hypergraph Convolutional Network for Social Recommendation](https://doi.org/10.1145/3442381.3449844) (WWW 2021) |
+| Yelp | Yin et al., [Social Influence-Based Group Representation Learning for Group Recommendation](https://doi.org/10.1109/ICDE.2019.00057) (ICDE 2019) |
+
+We thank the authors of these three papers for their contributions to the social recommendation benchmarks used in this work.
+
+Download the data files for all three datasets [Here](https://api.github.com/repositories/783168078/zipball/2cdb4e0dfcdd129e5c42ac8eb2ec42322b3ae4ff). Extract the archive and run the following command from the APHD repository root before training. Replace `../datasets/Data` with the path to the extracted `Data` directory.
 
 ```bash
 python prepare_data.py --source ../datasets/Data
