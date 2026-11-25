@@ -6,7 +6,7 @@ From the APHD repository root, download all three datasets and prepare their spl
 
     python prepare_data.py --download
 
-If you already have the files listed in the [README](README.md#datasets), place the `douban-book/`, `douban-movie/`, and `yelp/` folders under `../datasets/Data/` and run:
+If you already have the source files (`train.txt`, `test.txt`, and `social.txt` for each dataset), place the `douban-book/`, `douban-movie/`, and `yelp/` folders under `../datasets/Data/` and run:
 
     python prepare_data.py --source ../datasets/Data
 
