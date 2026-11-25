@@ -97,7 +97,7 @@ def prepare(source, output):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--source", required=True, type=Path, help="the Data directory inside the downloaded archive")
+    parser.add_argument("--source", required=True, type=Path, help="directory containing the douban-book, douban-movie, and yelp folders")
     parser.add_argument("--output", type=Path, default=Path("Data"), help="prepared dataset directory (default: ./Data)")
     args = parser.parse_args()
     try:
