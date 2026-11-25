@@ -26,6 +26,12 @@ python -m pip install numpy scipy
 
 ## Datasets
 
+To download Douban-Book, Douban-Movie, and Yelp together and prepare their splits in `./Data/`, run:
+
+```bash
+python prepare_data.py --download
+```
+
 | Dataset | Download | Reference |
 | --- | --- | --- |
 | Douban-Book | [train.txt](https://raw.githubusercontent.com/BlueGhostYi/DVGRL/2cdb4e0dfcdd129e5c42ac8eb2ec42322b3ae4ff/Data/douban-book/train.txt) · [test.txt](https://raw.githubusercontent.com/BlueGhostYi/DVGRL/2cdb4e0dfcdd129e5c42ac8eb2ec42322b3ae4ff/Data/douban-book/test.txt) · [social.txt](https://raw.githubusercontent.com/BlueGhostYi/DVGRL/2cdb4e0dfcdd129e5c42ac8eb2ec42322b3ae4ff/Data/douban-book/social.txt) | Yu et al., KDD 2021 |

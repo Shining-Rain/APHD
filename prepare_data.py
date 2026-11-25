@@ -1,4 +1,4 @@
-"""Prepare APHD's fixed training, validation, and test splits from the downloaded datasets."""
+"""Prepare APHD's fixed training, validation, and test splits."""
 
 import argparse
 import hashlib
@@ -6,6 +6,13 @@ import random
 from filecmp import cmp
 from pathlib import Path
 from tempfile import TemporaryDirectory
+from urllib.request import urlopen
+
+DATA_URL = (
+    "https://raw.githubusercontent.com/BlueGhostYi/DVGRL/"
+    "2cdb4e0dfcdd129e5c42ac8eb2ec42322b3ae4ff/Data"
+)
+SOURCE_FILES = ("train", "test", "social")
 
 # Fingerprints cover train, test, and social files, ignoring platform line endings.
 SOURCE_DIGESTS = {
@@ -13,6 +20,17 @@ SOURCE_DIGESTS = {
     "douban-movie": "8ebfbe11173c2a6a4a9e2fdb926cf7d0b71f4452c9c105c7a36b51d52ed3b6cb",
     "yelp": "e9ed739a3013054aca113e5442a6425c5e1ecd45613a0fa0921508717c0ca488",
 }
+
+
+def download_sources(directory):
+    for name in SOURCE_DIGESTS:
+        print(f"Downloading {name}...", flush=True)
+        folder = directory / name
+        folder.mkdir(parents=True)
+        for stem in SOURCE_FILES:
+            filename = f"{stem}.txt"
+            with urlopen(f"{DATA_URL}/{name}/{filename}", timeout=60) as response:
+                (folder / filename).write_bytes(response.read())
 
 
 def validation_edges(name, rows):
@@ -46,7 +64,7 @@ def validation_edges(name, rows):
 def prepare_dataset(name, source, destination):
     files = {}
     fingerprint = hashlib.sha256()
-    for stem in ("train", "test", "social"):
+    for stem in SOURCE_FILES:
         content = (source / f"{stem}.txt").read_bytes().replace(b"\r\n", b"\n")
         fingerprint.update(hashlib.sha256(content).digest())
         files[stem] = content
@@ -78,10 +96,13 @@ def prepare_dataset(name, source, destination):
 
 
 def prepare(source, output):
-    if source == output or source in output.parents or output in source.parents:
+    if source is not None and (source == output or source in output.parents or output in source.parents):
         raise ValueError("Choose separate, non-overlapping source and output directories.")
     output.parent.mkdir(parents=True, exist_ok=True)
     with TemporaryDirectory(dir=output.parent) as tmp:
+        if source is None:
+            source = Path(tmp) / "downloads"
+            download_sources(source)
         staged = Path(tmp) / "prepared"
         staged.mkdir()
         for name in SOURCE_DIGESTS:
@@ -97,11 +118,14 @@ def prepare(source, output):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--source", required=True, type=Path, help="directory containing the douban-book, douban-movie, and yelp folders")
+    inputs = parser.add_mutually_exclusive_group(required=True)
+    inputs.add_argument("--download", action="store_true", help="download all three datasets before preparing the splits")
+    inputs.add_argument("--source", type=Path, help="directory containing the douban-book, douban-movie, and yelp folders")
     parser.add_argument("--output", type=Path, default=Path("Data"), help="prepared dataset directory (default: ./Data)")
     args = parser.parse_args()
     try:
-        prepare(args.source.resolve(), args.output.resolve())
+        source = None if args.download else args.source.resolve()
+        prepare(source, args.output.resolve())
     except (OSError, ValueError) as error:
         parser.exit(1, f"{error}\n")
     print(f"APHD datasets ready in {args.output.resolve()}")
