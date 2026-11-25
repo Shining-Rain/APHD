@@ -2,9 +2,9 @@ APHD
 
 APHD requires PyTorch, NumPy, and SciPy. For GPU training, install a CUDA-enabled build of PyTorch compatible with your NVIDIA driver.
 
-Download the datasets linked in the [README](README.md#datasets). From the APHD repository root, prepare the validation splits before training (replace `../DVGRL/Data` with your downloaded data directory):
+Download the datasets linked in the [README](README.md#datasets). From the APHD repository root, prepare the validation splits before training (replace `../datasets/Data` with your downloaded data directory):
 
-    python prepare_data.py --source ../DVGRL/Data
+    python prepare_data.py --source ../datasets/Data
 
 Then train on Douban-Book with the command below. Use douban-movie or yelp to train on either of the other datasets.
 

@@ -26,10 +26,10 @@ python -m pip install numpy scipy
 
 ## Datasets
 
-Download Douban-Book, Douban-Movie, and Yelp from [DVGRL's data directory](https://github.com/BlueGhostYi/DVGRL/tree/2cdb4e0dfcdd129e5c42ac8eb2ec42322b3ae4ff/Data) ([download ZIP](https://codeload.github.com/BlueGhostYi/DVGRL/zip/2cdb4e0dfcdd129e5c42ac8eb2ec42322b3ae4ff)). Extract the archive and run the following command from the APHD repository root before training. Replace `../DVGRL/Data` with the path to the extracted `Data` directory.
+Download Douban-Book, Douban-Movie, and Yelp [Here](https://api.github.com/repositories/783168078/zipball/2cdb4e0dfcdd129e5c42ac8eb2ec42322b3ae4ff). Extract the archive and run the following command from the APHD repository root before training. Replace `../datasets/Data` with the path to the extracted `Data` directory.
 
 ```bash
-python prepare_data.py --source ../DVGRL/Data
+python prepare_data.py --source ../datasets/Data
 ```
 
 The script creates `./Data/` with APHD's fixed 7:1:2 splits. It sets aside part of each upstream training set for validation and preserves the original test sets and social graphs.

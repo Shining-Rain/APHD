@@ -1,4 +1,4 @@
-"""Prepare APHD's fixed training, validation, and test splits from DVGRL data."""
+"""Prepare APHD's fixed training, validation, and test splits from the downloaded datasets."""
 
 import argparse
 import hashlib
@@ -51,7 +51,7 @@ def prepare_dataset(name, source, destination):
         fingerprint.update(hashlib.sha256(content).digest())
         files[stem] = content
     if fingerprint.hexdigest() != SOURCE_DIGESTS[name]:
-        raise ValueError(f"{name}: source files differ from the DVGRL version linked in README.md.")
+        raise ValueError(f"{name}: source files differ from the dataset version linked in README.md.")
 
     rows = []
     for line in files["train"].splitlines():
@@ -97,7 +97,7 @@ def prepare(source, output):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--source", required=True, type=Path, help="the Data directory inside the downloaded DVGRL repository")
+    parser.add_argument("--source", required=True, type=Path, help="the Data directory inside the downloaded archive")
     parser.add_argument("--output", type=Path, default=Path("Data"), help="prepared dataset directory (default: ./Data)")
     args = parser.parse_args()
     try:
