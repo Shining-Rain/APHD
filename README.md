@@ -27,18 +27,3 @@ python -m pip install numpy scipy
 ## Datasets
 
 APHD supports `douban-book`, `douban-movie`, and `yelp`.
-
-## Quick start
-
-From the repository root, extract the data once, then start training:
-
-```bash
-python -m zipfile -e Data.zip .
-python main.py --dataset yelp --path ./Data/
-```
-
-Evaluation reports Recall and NDCG in the terminal.
-
-Run `python main.py --help` for all options.
-
-The three pretrained checkpoints are available in [checkpoint.zip](checkpoint.zip), stored with Git LFS.
