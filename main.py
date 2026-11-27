@@ -21,13 +21,13 @@ DATASETS = ("douban-book", "douban-movie", "yelp")
 MAX_EPOCHS = {
     "douban-book": 2000,
     "douban-movie": 10000,
-    "yelp": 300,
+    "yelp": 250,
 }
 
 MONITOR_PATIENCE = {
     "douban-book": 300,
     "douban-movie": 500,
-    "yelp": 50,
+    "yelp": 5,
 }
 
 
@@ -49,24 +49,26 @@ def parse_args():
 
 def model_config(dataset):
     """Default training and model hyperparameters."""
+    name = dataset.removesuffix("-712g")
+    is_yelp = name == "yelp"
     return SimpleNamespace(
         dataset=dataset,
-        learning_rate=0.005,
-        latent_dim=140,
+        learning_rate=0.004 if is_yelp else 0.005,
+        latent_dim=320 if is_yelp else 140,
         weight_decay=0.0,
         batch_size=1024,
-        dropout=0.6,
+        dropout=0.7 if name == "douban-book" else 0.6,
         interaction_kl_weight=1e-3,
         high_pass_compensation=0.2,
         num_social_prototypes=10,
-        social_geometry_weight=0.1,
+        social_geometry_weight=0.01 if is_yelp else 0.1,
         prototype_update_coefficient=0.1,
         alignment_weight=2e-3,
         renyi_order=0.3,
         row_mass_scale=0.1,
         kde_temperature=2.0,
         matched_affinity_weight=1.4,
-        social_kl_weight=0.1,
+        social_kl_weight=0.003 if is_yelp else 0.1,
         gate_temperature=1.5,
         uncertainty_calibration_weight=0.1,
         social_residual_weight=0.16,
@@ -217,6 +219,9 @@ def prepare_stage(dataset, path, seed, *, refit=True):
         lr=config.learning_rate,
         weight_decay=config.weight_decay,
     )
+    scheduler = optim.lr_scheduler.MultiStepLR(
+        optimizer, milestones=[100] if name == "yelp" else [], gamma=0.25,
+    )
     interaction_matrix = sparse_tensor(train_data, device)
     # Reuse this permutation throughout the training stage.
     user_order = np.arange(users_num)
@@ -234,6 +239,7 @@ def prepare_stage(dataset, path, seed, *, refit=True):
         config=config,
         model=model,
         optimizer=optimizer,
+        scheduler=scheduler,
         interaction_matrix=interaction_matrix,
         user_order=user_order,
     )
@@ -332,6 +338,7 @@ def train_epoch(stage):
         stage.optimizer.step()
         objective_sum += float(loss.item())
         batch_count += 1
+    stage.scheduler.step()
     return objective_sum / max(batch_count, 1), time.time() - started
 
 
